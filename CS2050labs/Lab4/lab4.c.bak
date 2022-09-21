@@ -1,0 +1,106 @@
+#include "lab4.h"
+
+int * createIntArray(size_t size);
+size_t getSize(int *array);
+void printArray(int *array);
+int sumOddIndices(int *array);
+void freeArray(int *array);
+
+/* createIntArray function
+	
+	takes in the size_t requested size of the array to be created
+	creates array of that size and stores length in index -1
+	returns the pointer to the array or null if the array has errors
+	
+*/
+
+int * createIntArray(size_t size)
+{
+	int *array;
+	array = malloc(sizeof(int)*size + sizeof(size_t));
+	array[0] = size;
+	array = array + 1;
+	if(array != NULL)
+		return array;
+	return NULL;
+}
+
+/* getSize function
+	
+	takes in the pointer to the array
+	returns the size of it stored in index -1
+	
+*/
+
+size_t getSize(int *array)
+{
+	return(array[-1]);
+}
+
+/* printArray function
+	
+	takes in the pointer to the array
+	prints every element of the array sequentially
+	
+*/
+
+void printArray(int *array)
+{
+	//size_t size = getSize(array);
+	for(int i = 0; i<getSize(array); i++)
+	{
+		printf("%d ", array[i]);
+	}
+	printf("\n");
+}
+
+/* sumOddIndices function
+	
+	takes in the pointer to the array
+	adds oddly indexed values to sum
+	returns that sum;
+	
+*/
+
+int sumOddIndices(int *array)
+{
+	int sum = 0;
+	for(int i = 1; i<getSize(array); i++)
+	{
+		if(i%2 == 1)
+		{
+			sum += array[i];
+		}
+	}
+	return sum;
+}
+
+/* freeArray function
+	
+	takes in the pointer to the array
+	returns the pointer back to the beginning and frees the array, then sets the address to null
+	
+*/
+
+void freeArray(int *array)
+{
+	free(array-1);
+	array = NULL;
+}
+
+/*
+//main method used to test these functions
+
+int main(void)
+{
+	size_t size = 9;
+	int *array;
+	array = createIntArray(size);
+	for(int i = 0; i<getSize(array); i++)
+		array[i] = i+1;
+	printf("size: %ld ", getSize(array));
+	printArray(array);
+	printf("sum: %d\n", sumOddIndices(array));
+	freeArray(array);
+}
+*/ 

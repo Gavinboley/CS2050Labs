@@ -1,0 +1,151 @@
+#include "lab5.h"
+
+/*
+	createArray creates an array of specified length and data type, then stores its size in index -1. It then returns a void casted version of the array
+*/
+void * createArray ( size_t elementSize , int numElements )
+{
+	int *array = malloc(sizeof(int)+(elementSize*numElements));
+	if(!array)    //checks if malloc was successful, if it wasnt it returns NULL
+		return NULL;
+	array[0] = numElements;
+	array++;
+	return (void*)array;
+}
+
+/*
+	getSize takes a void casted array and recasts it to an int to temporarily access its size
+*/
+int getSize ( void * array )
+{
+	return *(((int*)array)-1);
+}
+
+/*
+	various getter functions getVin, getMilesDriven, and getNumberOfAccidents take pointer to specific car and returns value of requested part
+*/
+int getVin ( Car * car )
+{
+	return car->vin;
+}
+
+float getMilesDriven ( Car * car )
+{
+	return car->milesDriven;
+}
+
+int getNumberOfAccidents ( Car * car )
+{
+	return car->numberOfAccidents;
+}
+
+/*
+	updateMilesDriven takes a pointer to specific car and adds specified miles to that car
+*/
+void updateMilesDriven ( Car * car , float milesToAdd )
+{
+	float newMiles = car->milesDriven + milesToAdd;
+	car->milesDriven=newMiles;
+}
+
+/*
+	incrementNumberOfAccidents takes a pointer to specific car and adds one to the number of accidents
+*/
+void incrementNumberOfAccidents ( Car * car )
+{
+	car->numberOfAccidents+=1;
+}
+
+/*
+	getCarByVIN scrubs through array of cars to find which car has the specified VIN number and returns the pointer to that specific car if found, otherwise returns NULL if it cant find it
+*/
+Car * getCarByVIN ( Car * array , int VIN )
+{
+	for(int i = 0; i < getSize(array); i++)
+	{
+		if(getVin(&array[i]) == VIN)
+		{
+			return &array[i];
+		}
+	}
+	return NULL;
+}
+
+/*
+	getWithMostMilesDriven scrubs through array of cars to find which car has the most miles and then returns the pointer to that specific car
+*/
+Car * getWithMostMilesDriven ( Car * array )
+{
+	Car *currentHighest = &array[0];
+	for(int i = 1; i < getSize(array); i++)
+	{
+		if(getMilesDriven(&array[i]) > getMilesDriven(currentHighest))
+		{
+			currentHighest = &array[i];
+		}
+	}
+	return currentHighest;
+}
+
+/*
+	printCars function takes a pointer to an array of cars and prints their values using getter functions, one car per line
+*/
+void printCars ( Car * array )
+{
+	for(int i = 0; i < getSize(array); i++)
+	{
+		printf("Car VIN: %d, Miles Driven: %.2f, Number of Accidents: %d\n", getVin(&array[i]), getMilesDriven(&array[i]), getNumberOfAccidents(&array[i]));
+	}
+}
+
+/*
+	freeArray takes in the void pointer to the array and then recasts the array back to an int array to frees malloced memory
+	!!!***Conflicting in lab documentation vs lab5.h whether it takes in an int array or void array, assumed lab5.h functionality of taking in void array
+*/
+void freeArray(void *array)
+{
+	free(((int*)array)-1);
+}
+
+ //Main method used to verify functionality of methods
+
+int main(void)
+{
+	FILE *fp;
+	fp = fopen("cars.txt", "r");
+	int arrsize = 0;
+	fscanf(fp, "%d", &arrsize);
+	Car *cararray = createArray(sizeof(Car), arrsize);
+	while(!feof(fp) && fp!=NULL)
+	{
+		for (int i=0; i<arrsize; i++) 
+		{
+			Car temp;
+			fscanf(fp, "%d", &(temp.vin)); 
+			fscanf(fp, "%f", &(temp.milesDriven)); 
+			fscanf(fp, "%d\n", &(temp.numberOfAccidents)); 
+			cararray[i]=temp;
+		}
+	}
+	printCars(cararray);
+	printf("\n");
+	Car *mostMiles = getWithMostMilesDriven(cararray);
+	printf("VIN with most miles: %d\n", getVin(mostMiles));
+	printf("Miles Driven of car with vin 546323: %.2f\n", getMilesDriven(getCarByVIN(cararray, 546323)));
+	
+	incrementNumberOfAccidents(getCarByVIN(cararray, 546323));
+	updateMilesDriven(getCarByVIN(cararray, 546323), 10000);
+	printCars(cararray);
+	freeArray(cararray);
+}
+
+/*
+Text file used to test, "cars.txt":
+
+5
+354534 120000 1
+652323 180000 2
+783457 60000 0
+345823 40000 1
+546323 20 0
+*/

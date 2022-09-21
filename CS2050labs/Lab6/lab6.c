@@ -1,0 +1,165 @@
+#include "lab6.h"
+
+/*
+	initList initializes an empty first node to a list and returns a pointer to it
+*/
+Node * initList ()
+{
+	Node *list;
+	list = malloc(sizeof(Node));
+	if(list)
+	{
+		list->data = NULL;
+		list->next = NULL;
+	}
+	return(list);
+}
+
+/*
+	getSize counts the number of items in the given list and returns them
+*/
+int getSize ( Node * list )
+{
+	int i = 0;
+	for (Node *thisOne=list; thisOne!=NULL; thisOne=thisOne->next)
+	{
+		i++;
+	}
+	return i;
+}
+
+/*
+	insertAtHead takes in a pointer to a pointer of a list and the data you want to place into a node and inserts it into the list
+*/
+int insertAtHead ( Node ** list , void * data )
+{
+	if((*list)->data == NULL) //insert into empty first node
+	{
+		(*list)->data = data;
+		return 0;
+	} 
+	else //create new node and place before first if first node has data
+	{
+		Node *addThis = malloc(sizeof(Node));
+		addThis->data = data;
+		addThis->next = (*list);
+		(*list) = addThis;
+		return 0;
+	}
+	return 1;
+}
+
+/*
+	removeFromHead takes in a double pointer to a list and removes the data from the list, and returns that
+*/
+void * removeFromHead ( Node ** list )
+{
+	if((*list)->data != NULL)
+	{
+		if((*list)->next == NULL) //if the only node in list
+		{
+			void* data = (*list)->data;
+			(*list)->data = NULL;
+			return data;
+		}
+		else //if more nodes after in list, remove first node entirely
+		{
+			void *data = (*list)->data;
+			Node *point = *list;
+			(*list) = (*list)->next;
+			free(point);
+			return data;
+		}
+	}
+	return NULL; //the first nodes data was completely empty
+}
+
+/*
+	freeList takes in a double pointer to a list and frees every individual member of the list
+*/
+void freeList ( Node ** list )
+{
+	Node *current = (*list);
+	for(Node *next; current!=NULL; current=next)
+	{
+		next = current->next;
+		free(current);
+	}
+}
+
+/*
+	getWithLeastMilesDriven takes a list of Car structs and gets the Car member which has the lowest miles and returns it
+*/
+Car * getWithLeastMilesDriven ( Node *list )
+{
+	Car *currentLowest = list->data;
+	for (Node *thisOne=list; thisOne!=NULL; thisOne=thisOne->next)
+	{
+		Car *temp = thisOne->data;
+		if(temp->milesDriven < currentLowest->milesDriven)
+		{
+			currentLowest = temp;
+		}
+	}
+	return currentLowest;
+}
+
+/*
+	printCars takes in a pointer to a list of Car structs and prints each member on a new line
+*/
+void printCars ( Node * list )
+{
+	for (Node *thisOne=list; thisOne!=NULL; thisOne=thisOne->next)
+	{
+		Car *temp = thisOne->data;
+		printf("Car VIN: %d, Miles Driven: %.2f, Number of Accidents: %d\n", temp->vin, temp->milesDriven, temp->numberOfAccidents);
+	}
+}
+
+//test functions using car structs
+int main(void)
+{
+	Car car1; Car car2;
+	car1.vin = 354534; car1.milesDriven = 120000; car1.numberOfAccidents = 1;
+	car2.vin = 652323; car2.milesDriven = 180000; car2.numberOfAccidents = 2;
+	
+	Node *carList = initList();
+	insertAtHead(&carList, &car2);
+	insertAtHead(&carList, &car1);
+	
+	printCars(carList);
+	
+	Car *lowestMiles = getWithLeastMilesDriven(carList);
+	Node *temp = initList();
+	insertAtHead(&temp, lowestMiles);
+	
+	printCars(temp);
+}
+
+
+/* //test functions using generic ints
+int main(void)
+{
+	Node *mainList = initList();
+	int size = getSize(mainList);
+	printf("starting size: %d\n",size);
+		
+	int filler = 15;
+	insertAtHead(&mainList, &filler);
+	printf("object value: %d\n", *(int*)mainList->data);
+	printf("size after first insert: %d\n",size);
+		
+	int filler2 = 20;
+	int error = insertAtHead(&mainList, &filler2);
+	size = getSize(mainList);
+	printf("2nd object value: %d\n", *(int*)mainList->data);
+	printf("error?: %d\n",error);
+	printf("size after second insert: %d\n",size);
+
+	int data = *(int*)removeFromHead(&mainList);
+	printf("data deleted: %d\n", data);
+	size = getSize(mainList);
+	printf("1st object value after deletion: %d\n", *(int*)mainList->data); //NULL if theres no object value cause it was deleted, therefore seg fault
+	printf("size after deletion: %d\n",size);
+}
+*/

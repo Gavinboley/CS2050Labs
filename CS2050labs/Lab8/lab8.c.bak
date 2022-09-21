@@ -1,0 +1,223 @@
+#include "lab8.h"
+#include<assert.h> //used for main method testing
+
+typedef struct nodeStruct{
+    void * object;
+    struct nodeStruct * next;
+} Node;
+
+typedef struct queueDataStruct{ //seperate struct from Queue struct to operate in O(1)
+    int ec;
+    Node * front;
+    Node * rear;
+    int size;
+} QueueData;
+
+typedef struct Queue{
+    QueueData * data;
+} Queue;
+
+/*
+	initQueue creates a queue with a dummy node and initializes/mallocs all required values, then returns pointer to queue
+*/
+Queue* initQueue()
+{
+    Queue *q = malloc(sizeof(Queue));
+    QueueData * data = malloc(sizeof(QueueData));
+    q->data = data;
+    q->data->ec = 1;
+    q->data->size = 0;
+    q->data->front = NULL;
+    q->data->rear = NULL;
+    Node * dummy = malloc(sizeof(Node));
+    if(!dummy)
+        return q;
+    q->data->front = dummy;
+    dummy->next = NULL;
+    q->data->rear = dummy;
+    q->data->ec = 0;
+    return q;
+}
+
+/*
+	getSize returns the size of the queue
+*/
+int getSize(Queue *q)
+{
+    return q->data->size;
+}
+
+/*
+	enQueue adds a node to the end of the queue and increases the size by 1, else if the pointer is null for passed queue or declared node, returns error code of 1
+*/
+int enQueue( Queue *q, void * data)
+{
+	if(!q)
+		return 1;  //passed queue pointer is null
+    Node * newNode = malloc(sizeof(Node));
+    if(!newNode)
+    {
+        q->data->ec = 1;
+        return 1;
+    }
+    newNode->object = data;
+    newNode->next = NULL;
+    q->data->rear->next = newNode;
+    q->data->rear = newNode;
+    q->data->size = (q->data->size)+1;
+    q->data->ec = 0;
+    return 0;
+}
+
+/*
+	peek returns the object pointer at the beginning of the queue without removing it
+*/
+void * peek(Queue *q)
+{
+	if(!q)
+		return NULL; //passed queue pointer is null
+	if(q->data->front->next == NULL)
+    {
+        q->data->ec = 2; //Queue is empty other then dummy
+        return NULL;
+    }
+    Node * nodeToPeek = q->data->front->next;
+    void * object = nodeToPeek->object;
+    q->data->ec = 0;
+    return object;
+}
+
+/*
+	deQueue returns the object at the beginning of the queue and removes the node from the queue, as well as changing the size value and if size is zero sets pointers appropriately
+*/
+void * deQueue(Queue *q)
+{
+	if(!q)
+		return NULL; //passed queue pointer is null
+	if(q->data->front->next == NULL)
+    {
+        q->data->ec = 2;
+        return NULL; //Queue is empty other then dummy
+    }
+    Node * nodeToRemove = q->data->front->next;
+    q->data->front->next = nodeToRemove->next;
+    void * object = nodeToRemove->object;
+    free(nodeToRemove);
+    q->data->size = (q->data->size)-1;
+    if(q->data->size == 0)
+        q->data->rear = q->data->front;
+    q->data->ec = 0;
+    return object;
+}
+
+/*
+	freeQueue combs through all nodes and frees them, then sets them to NULL, then frees q->data & q passed as well as sets all to NULL
+*/
+void freeQueue(Queue *q)
+{
+	if(!q)
+		return; //passed queue pointer is null
+    Node * currentNode = q->data->front;
+    for(Node * nextNode; currentNode != NULL; currentNode = nextNode)
+    {
+        nextNode = currentNode->next;
+        free(currentNode);
+		currentNode = NULL;
+    }
+    free(q->data);
+	q->data = NULL;
+	free(q);
+	q = NULL;
+}
+
+
+
+//Testing Functions
+
+
+/*
+	getQueueErrorCode will check error values, used to aid assert() function(s) boolean checker
+*/
+int getQueueErrorCode(Queue *q)
+{
+    return q->data->ec;
+}
+
+/*
+	printQ will print int value of every queue node, for testing purposes
+*/
+void printQ(Queue *q)
+{
+    printf("My List\n");
+    Node * currentNode = q->data->front->next;
+    printf("%p\n", currentNode);
+    while(currentNode)
+    {
+        int value = *((int*) currentNode->object);
+        printf("%d\n", value);
+        currentNode = currentNode->next;
+    }
+    printf("Size: %d", getSize(q));
+}
+
+
+ //pre-written main method to test functionality of queue, no thrown errors by assert() at compile means it works
+int main(void) {
+    Queue *myQueue = initQueue();
+    assert(myQueue->data->ec == 0);
+    int a = 0;
+    int b = 1;
+    int c = 2;
+    int d = 3;
+    int e = 4;
+    int f = 5;
+
+    assert(getSize(myQueue) == 0);
+    assert(deQueue(myQueue) == NULL);
+    assert(getQueueErrorCode(myQueue) == 2);
+
+    printf("Empty queue behaving properly!\n");
+    
+    assert(enQueue(myQueue, &a) == getQueueErrorCode(myQueue));
+    assert(*((int*)deQueue(myQueue)) == a);
+    assert(getQueueErrorCode(myQueue) == 0);
+	//printQ(myQueue);  //is NULL
+
+    assert(getSize(myQueue) == 0);
+    assert(deQueue(myQueue) == NULL);
+    assert(getQueueErrorCode(myQueue) == 2);
+
+    printf("Adding and removing one item behaving properly!\n");
+
+    assert(enQueue(myQueue, &a) == 0);
+    assert(enQueue(myQueue, &b) == 0);
+    assert(enQueue(myQueue, &c) == 0);
+    assert(enQueue(myQueue, &d) == 0);
+    assert(enQueue(myQueue, &e) == 0);
+    assert(enQueue(myQueue, &f) == 0);
+
+    assert(getQueueErrorCode(myQueue) == 0);
+    assert(getSize(myQueue) == 6);
+	//printQ(myQueue);  //is 0-5, shows dummy node address too
+	//printf("%d\n", *(int*)peek(myQueue));  //shows first node data
+
+    assert(*((int*)deQueue(myQueue)) == a);
+    assert(*((int*)deQueue(myQueue)) == b);
+	//printf("%d\n", *(int*)peek(myQueue));  //shows first node data after removing some
+    assert(*((int*)deQueue(myQueue)) == c);
+    assert(*((int*)deQueue(myQueue)) == d);
+    assert(*((int*)deQueue(myQueue)) == e);
+    assert(*((int*)deQueue(myQueue)) == f);
+	//printQ(myQueue);  is NULL after freed
+
+    printf("Adding and removing multiple items working properly!\n");
+
+    assert(getSize(myQueue) == 0);
+    assert(deQueue(myQueue) == NULL);
+    assert(getQueueErrorCode(myQueue) == 2);
+	//printQ(myQueue);  is NULL
+
+    printf("Empty queue behaving properly!\n");
+
+    freeQueue(myQueue);
+}
